@@ -90,6 +90,9 @@ A document **MAY** contain any of these top-level members:
 * `links`: a [links object][links] related to the primary data.
 * `included`: an array of [resource objects] that are related to the primary
   data and/or each other ("included resources").
+* `identities`: an array of
+  [resource identifier objects][resource identifier object] that are used to
+  correlate `lid` and `id` fields for resources.
 
 If a document does not contain a top-level `data` key, the `included` member
 **MUST NOT** be present either.
@@ -379,10 +382,8 @@ to be created on the server.
 
 A "resource identifier object" **MAY** contain a `lid` member. If `id` is
 omitted due to the exception described above, a `lid` member **MUST** be
-included. A `lid` member **MUST** also be included if the referenced resource is
-represented elsewhere in the document with a `lid`. In this case, the value of
-the `lid` member **MUST** match the `lid` value for every other representation
-of the resource in the document.
+included. A resource identifier's `lid` value **MUST** match the `lid` value
+used for every other representation of the resource in the document.
 
 The values of the `id`, `lid`, and `type` members **MUST** be strings.
 
@@ -594,6 +595,38 @@ implements at least version 1.0 of the specification.
 
 > Note: Because JSON API is committed to making additive changes only, the
 version string primarily indicates which new features a server may support.
+
+### <a href="#document-identities-array" id="document-identities-array" class="headerlink"></a> Identities Array
+
+A JSON API document **MAY** include an array of resource identifiers
+under a top level `identities` member. If present, the value of the `identities`
+member **MUST** be an array containing only
+[resource identifier objects][resource identifier object].
+
+The purpose of the `identities` array is to correlate `lid`s in a request with
+`id`s in a response.
+
+For example, a request might include the following identifiers:
+
+```json
+{
+  "identities": [
+    { "type": "tags", "lid": "1" },
+    { "type": "tags", "lid": "2" }
+  ]
+}
+```
+
+And a response might include the following identifiers for correlation:
+
+```json
+{
+  "identities": [
+    { "type": "tags", "lid": "1", "id": "23455" },
+    { "type": "tags", "lid": "2", "id": "23456" }
+  ]
+}
+```
 
 ### <a href="#document-member-names" id="document-member-names" class="headerlink"></a> Member Names
 
@@ -1187,6 +1220,9 @@ If a [resource object][resource objects] or [resource identifier object] in a
 request document includes a `lid` member, then the server **MUST** include the
 matching `lid` member and value in every representation of that resource or
 resource identifier in the response document.
+
+If a request document contains an [identities] array, then the server **MUST**
+include an [identities] array with corresponding resource identifier objects.
 
 > Note: The `type` member is required in every [resource object][resource objects] throughout requests and
 responses in JSON API. There are some cases, such as when `POST`ing to an
@@ -1866,6 +1902,7 @@ An error object **MAY** have the following members:
 [resource links]: #document-resource-object-links
 [resource identifier object]: #document-resource-identifier-objects
 [compound document]: #document-compound-documents
+[identities]: #document-identities-array
 [meta]: #document-meta
 [links]: #document-links
 [error details]: #errors
